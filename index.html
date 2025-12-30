@@ -12,14 +12,8 @@
             align-items: center;
             padding: 50px;
         }
-        h1 {
-            color: #333;
-        }
-        .input-row {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
+        h1 { color: #333; }
+        .input-row { display: flex; gap: 15px; margin-bottom: 20px; }
         input {
             padding: 10px;
             font-size: 16px;
@@ -28,9 +22,7 @@
             border-radius: 5px;
             text-align: center;
         }
-        .buttons-row {
-            margin-bottom: 20px;
-        }
+        .buttons-row { margin-bottom: 20px; }
         button {
             padding: 10px 20px;
             font-size: 16px;
@@ -42,9 +34,7 @@
             color: white;
             transition: 0.3s;
         }
-        button:hover {
-            background-color: #45a049;
-        }
+        button:hover { background-color: #45a049; }
         .result-box {
             background: white;
             padding: 15px 20px;
@@ -78,7 +68,9 @@
     <div id="tree_result" class="result-box">Decision Tree Prediction: -</div>
 
     <script>
-        async function predict(model){
+        const backendUrl = "https://ml-lab-backend-g2l3.onrender.com"; // your deployed backend
+
+        async function predict(model) {
             const data = {
                 sepal_length: parseFloat(document.getElementById('sepal_length').value),
                 sepal_width: parseFloat(document.getElementById('sepal_width').value),
@@ -86,7 +78,11 @@
                 petal_width: parseFloat(document.getElementById('petal_width').value)
             };
 
-            const url = `http://127.0.0.1:8000/predict/${model}`;
+            // Match backend endpoint paths exactly
+            const url = model === "logistic" 
+                ? `${backendUrl}/predict/logistic`
+                : `${backendUrl}/predict/tree`;
+
             try {
                 const response = await fetch(url, {
                     method: "POST",
@@ -95,17 +91,20 @@
                 });
                 const result = await response.json();
 
-                if(model === "logistic"){
-                    document.getElementById('logistic_result').innerText = "Logistic Regression Prediction: " + result.prediction;
+                if (model === "logistic") {
+                    document.getElementById('logistic_result').innerText =
+                        "Logistic Regression Prediction: " + result.prediction;
                 } else {
-                    document.getElementById('tree_result').innerText = "Decision Tree Prediction: " + result.prediction;
+                    document.getElementById('tree_result').innerText =
+                        "Decision Tree Prediction: " + result.prediction;
                 }
 
             } catch (err) {
-                if(model === "logistic"){
-                    document.getElementById('logistic_result').innerText = "Error: Backend not running";
+                console.error(err);
+                if (model === "logistic") {
+                    document.getElementById('logistic_result').innerText = "Error: Backend not reachable";
                 } else {
-                    document.getElementById('tree_result').innerText = "Error: Backend not running";
+                    document.getElementById('tree_result').innerText = "Error: Backend not reachable";
                 }
             }
         }
