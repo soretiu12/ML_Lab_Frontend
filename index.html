@@ -22,92 +22,90 @@
             border-radius: 5px;
             text-align: center;
         }
-        .buttons-row { margin-bottom: 20px; }
         button {
             padding: 10px 20px;
             font-size: 16px;
-            margin-right: 10px;
+            margin: 10px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             background-color: #4CAF50;
             color: white;
-            transition: 0.3s;
         }
         button:hover { background-color: #45a049; }
         .result-box {
             background: white;
-            padding: 15px 20px;
+            padding: 15px;
             border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-            width: 300px;
+            width: 320px;
             text-align: center;
-            margin-bottom: 10px;
             font-size: 18px;
             font-weight: bold;
-            color: #333;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
-    <h1>Iris Prediction</h1>
 
-    <div class="input-row">
-        <input id="sepal_length" placeholder="Sepal Length" type="number">
-        <input id="sepal_width" placeholder="Sepal Width" type="number">
-        <input id="petal_length" placeholder="Petal Length" type="number">
-        <input id="petal_width" placeholder="Petal Width" type="number">
-    </div>
+<h1>Iris Prediction</h1>
 
-    <div class="buttons-row">
-        <button onclick="predict('logistic')">Predict Logistic Regression</button>
-        <button onclick="predict('tree')">Predict Decision Tree</button>
-    </div>
+<div class="input-row">
+    <input id="sepal_length" type="number" placeholder="Sepal Length">
+    <input id="sepal_width" type="number" placeholder="Sepal Width">
+    <input id="petal_length" type="number" placeholder="Petal Length">
+    <input id="petal_width" type="number" placeholder="Petal Width">
+</div>
 
-    <div id="logistic_result" class="result-box">Logistic Regression Prediction: -</div>
-    <div id="tree_result" class="result-box">Decision Tree Prediction: -</div>
+<button onclick="predict('logistic')">Predict Logistic Regression</button>
+<button onclick="predict('tree')">Predict Decision Tree</button>
 
-    <script>
-        const backendUrl = "https://ml-lab-backend-g2l3.onrender.com"; // your deployed backend
+<div id="logistic_result" class="result-box">Logistic Regression Prediction: -</div>
+<div id="tree_result" class="result-box">Decision Tree Prediction: -</div>
 
-        async function predict(model) {
-            const data = {
-                sepal_length: parseFloat(document.getElementById('sepal_length').value),
-                sepal_width: parseFloat(document.getElementById('sepal_width').value),
-                petal_length: parseFloat(document.getElementById('petal_length').value),
-                petal_width: parseFloat(document.getElementById('petal_width').value)
-            };
+<script>
+const backendUrl = "https://ml-lab-backend-g2l3.onrender.com";
 
-            // Match backend endpoint paths exactly
-            const url = model === "logistic" 
-                ? `${backendUrl}/predict/logistic`
-                : `${backendUrl}/predict/tree`;
+async function predict(model) {
 
-            try {
-                const response = await fetch(url, {
-                    method: "POST",
-                    headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify(data)
-                });
-                const result = await response.json();
+    const data = {
+        sepal_length: parseFloat(sepal_length.value),
+        sepal_width: parseFloat(sepal_width.value),
+        petal_length: parseFloat(petal_length.value),
+        petal_width: parseFloat(petal_width.value)
+    };
 
-                if (model === "logistic") {
-                    document.getElementById('logistic_result').innerText =
-                        "Logistic Regression Prediction: " + result.prediction;
-                } else {
-                    document.getElementById('tree_result').innerText =
-                        "Decision Tree Prediction: " + result.prediction;
-                }
+    // ✅ Input validation
+    if (Object.values(data).some(isNaN)) {
+        alert("Please fill all values");
+        return;
+    }
 
-            } catch (err) {
-                console.error(err);
-                if (model === "logistic") {
-                    document.getElementById('logistic_result').innerText = "Error: Backend not reachable";
-                } else {
-                    document.getElementById('tree_result').innerText = "Error: Backend not reachable";
-                }
-            }
-        }
-    </script>
+    const resultBox = model === "logistic"
+        ? document.getElementById("logistic_result")
+        : document.getElementById("tree_result");
+
+    resultBox.innerText = "Predicting... ⏳";
+
+    const url = model === "logistic"
+        ? `${backendUrl}/predict/logistic`
+        : `${backendUrl}/predict/tree`;
+
+    try {
+        const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        resultBox.innerText = "Prediction: " + result.prediction;
+
+    } catch (error) {
+        console.error(error);
+        resultBox.innerText = "Error connecting to backend";
+    }
+}
+</script>
+
 </body>
 </html>
