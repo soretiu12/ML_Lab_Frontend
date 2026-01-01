@@ -1,111 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Iris Prediction</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(to right, #f5f7fa, #c3cfe2);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 50px;
-        }
-        h1 { color: #333; }
-        .input-row { display: flex; gap: 15px; margin-bottom: 20px; }
-        input {
-            padding: 10px;
-            font-size: 16px;
-            width: 120px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            text-align: center;
-        }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            margin: 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            background-color: #4CAF50;
-            color: white;
-        }
-        button:hover { background-color: #45a049; }
-        .result-box {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            width: 320px;
-            text-align: center;
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>Student Grade Prediction</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<style>
+body {
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(135deg, #FFDDE2, #D5FFEF);
+    display: flex; flex-direction: column; align-items: center; padding: 50px 20px;
+    min-height: 100vh;
+}
+h1 { color: #333; margin-bottom: 40px; text-shadow: 1px 1px 5px rgba(0,0,0,0.1);}
+.form-container {
+    background: #fff; padding: 40px 30px; border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+    display: flex; flex-direction: column; gap: 15px; width: 350px; transition: transform 0.3s ease;
+}
+.form-container:hover { transform: translateY(-5px); }
+input { padding: 15px; font-size:16px; border-radius:12px; border:2px solid #ddd; outline:none; box-shadow: inset 0 3px 6px rgba(0,0,0,0.05); transition:0.3s;}
+input:focus { border:2px solid #FF6B6B; box-shadow:0 0 8px rgba(255,107,107,0.4);}
+button { padding:15px; font-size:16px; border:none; border-radius:12px; cursor:pointer; background: linear-gradient(45deg,#FF6B6B,#FFD93D); color:white; font-weight:bold; transition:0.3s; box-shadow:0 5px 15px rgba(0,0,0,0.2);}
+button:hover { transform:translateY(-3px); box-shadow:0 10px 25px rgba(0,0,0,0.3);}
+.result-box { margin-top:30px; width:350px; padding:25px; text-align:center; font-size:20px; font-weight:bold; border-radius:20px; color:#fff; min-height:60px; display:flex; align-items:center; justify-content:center; background:#888; transition:0.5s;}
+.stay { background: linear-gradient(45deg,#4CAF50,#81C784); box-shadow:0 5px 20px rgba(76,175,80,0.4);}
+.leave { background: linear-gradient(45deg,#FF5252,#FF867F); box-shadow:0 5px 20px rgba(255,82,82,0.4);}
+@media (max-width:400px) {.form-container,.result-box {width:90%; padding:25px;} button,input {font-size:14px; padding:12px;}}
+</style>
 </head>
 <body>
 
-<h1>Iris Prediction</h1>
+<h1>Student Grade Prediction</h1>
 
-<div class="input-row">
-    <input id="sepal_length" type="number" placeholder="Sepal Length">
-    <input id="sepal_width" type="number" placeholder="Sepal Width">
-    <input id="petal_length" type="number" placeholder="Petal Length">
-    <input id="petal_width" type="number" placeholder="Petal Width">
+<div class="form-container">
+    <input id="hours_studied" type="number" placeholder="Hours Studied">
+    <input id="attendance" type="number" placeholder="Attendance (%)">
+    <input id="practice_exercises" type="number" placeholder="Practice Exercises Completed">
+    <input id="sleep_hours" type="number" placeholder="Average Sleep Hours">
+    <button onclick="predict('logistic')">Predict Logistic Regression</button>
+    <button onclick="predict('tree')">Predict Decision Tree</button>
 </div>
 
-<button onclick="predict('logistic')">Predict Logistic Regression</button>
-<button onclick="predict('tree')">Predict Decision Tree</button>
-
-<div id="logistic_result" class="result-box">Logistic Regression Prediction: -</div>
-<div id="tree_result" class="result-box">Decision Tree Prediction: -</div>
+<div id="result" class="result-box">Prediction will appear here...</div>
 
 <script>
-const backendUrl = "https://ml-lab-backend-g2l3.onrender.com";
+const backendUrl = "http://127.0.0.1:8000"; // update if deployed
 
-async function predict(model) {
-
+async function predict(model){
     const data = {
-        sepal_length: parseFloat(sepal_length.value),
-        sepal_width: parseFloat(sepal_width.value),
-        petal_length: parseFloat(petal_length.value),
-        petal_width: parseFloat(petal_width.value)
+        hours_studied: parseInt(hours_studied.value),
+        attendance: parseInt(attendance.value),
+        practice_exercises: parseInt(practice_exercises.value),
+        sleep_hours: parseInt(sleep_hours.value)
     };
-
-    // ✅ Input validation
-    if (Object.values(data).some(isNaN)) {
-        alert("Please fill all values");
-        return;
-    }
-
-    const resultBox = model === "logistic"
-        ? document.getElementById("logistic_result")
-        : document.getElementById("tree_result");
-
-    resultBox.innerText = "Predicting... ⏳";
-
-    const url = model === "logistic"
-        ? `${backendUrl}/predict/logistic`
-        : `${backendUrl}/predict/tree`;
-
-    try {
-        const response = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data)
-        });
-
+    if(Object.values(data).some(isNaN)){ alert("Please fill all fields!"); return; }
+    const resultBox = document.getElementById("result");
+    resultBox.innerText="Predicting... ⏳";
+    resultBox.className="result-box";
+    const url = model==='logistic'? `${backendUrl}/predict/logistic` : `${backendUrl}/predict/tree`;
+    try{
+        const response = await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});
         const result = await response.json();
-        resultBox.innerText = "Prediction: " + result.prediction;
-
-    } catch (error) {
-        console.error(error);
-        resultBox.innerText = "Error connecting to backend";
+        resultBox.innerText=result.prediction;
+        if(result.prediction.toLowerCase().includes("good")){ resultBox.classList.add("stay"); }
+        else{ resultBox.classList.add("leave"); }
+    }catch(err){
+        console.error(err);
+        resultBox.innerText="Error connecting to backend 😢";
+        resultBox.className="result-box leave";
     }
 }
 </script>
-
 </body>
 </html>
