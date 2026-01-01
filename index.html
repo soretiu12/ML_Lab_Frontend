@@ -43,8 +43,8 @@ button:hover { transform:translateY(-3px); box-shadow:0 10px 25px rgba(0,0,0,0.3
 <div id="result" class="result-box">Prediction will appear here...</div>
 
 <script>
-// <-- Replace this with your deployed Render backend URL -->
-const backendUrl = "https://your-backend-service.onrender.com";
+// ✅ Set your actual deployed backend URL
+const backendUrl = "https://ml-lab-backend-g2l3.onrender.com";
 
 async function predict(model){
     const data = {
@@ -53,6 +53,7 @@ async function predict(model){
         practice_exercises: parseInt(practice_exercises.value),
         sleep_hours: parseInt(sleep_hours.value)
     };
+
     if(Object.values(data).some(isNaN)){
         alert("Please fill all fields!");
         return;
@@ -70,8 +71,14 @@ async function predict(model){
             headers:{"Content-Type":"application/json"},
             body:JSON.stringify(data)
         });
+
+        if(!response.ok){
+            throw new Error("Backend error");
+        }
+
         const result = await response.json();
         resultBox.innerText = result.prediction;
+
         if(result.prediction.toLowerCase().includes("good")){
             resultBox.classList.add("stay");
         } else{
